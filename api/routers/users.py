@@ -7,18 +7,20 @@ from sqlalchemy import VARCHAR
 import os
 import numpy as np
 import pandas as pd
+from typing import Annotated
 
 router = APIRouter(
-    prefix = "/users",  # Avoid to indicate the path operation root
-    tags = ["Users"]    # Create section in Swagger documentation
+    prefix = "/users",
+    tags = ["Users"]
     )
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data")
-def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=File(...)):  # parent_path = /Users/nicolas/Documents/TalentPitchAPI/data/
+def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):  # parent_path = /Users/nicolas/Documents/TalentPitchAPI/data/
     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
     
     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
+    data["identification_number"] = data["identification_number"].astype(str)
     
     # Replce null values.
     if data.dtypes[data.dtypes == np.dtype("int")].to_frame().reset_index(names="columns").__len__() > 0:
