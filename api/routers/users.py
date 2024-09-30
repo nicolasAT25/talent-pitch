@@ -1,9 +1,11 @@
-from fastapi import Response, status, HTTPException, Depends, APIRouter
+from fastapi import Response, status, HTTPException, Depends, APIRouter, UploadFile, File
 from .. import models, schemas, utils
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
+from sqlalchemy import VARCHAR
 import os
+import numpy as np
 import pandas as pd
 
 router = APIRouter(
@@ -11,32 +13,30 @@ router = APIRouter(
     tags = ["Users"]    # Create section in Swagger documentation
     )
 
-# Define local paths.
-parent_path = r"/Users/nicolasarangurenturmeque/Documents/TalentPitchAPI/api/data/"
-
 # Load batch data (max 3000 rows).
-@router.post("/{file_name}")
-def load_users(file_name:str, cols_to_hash:str):
-    separator = utils.separator_finder(os.path.join(parent_path, file_name))
+@router.post("/load_data")
+def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=File(...)):  # parent_path = /Users/nicolas/Documents/TalentPitchAPI/data/
+    separator = utils.separator_finder(os.path.join(parent_path, file.filename))
     
-    data = pd.read_csv(filepath_or_buffer=os.path.join(parent_path, file_name), sep=separator, encoding="utf-8")
+    data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
     
     # Replce null values.
-    if data.dtypes[data.dtypes == 'int64'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'int64'].to_frame().reset_index(names="columns")["columns"]:
+    if data.dtypes[data.dtypes == np.dtype("int")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("int")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0}, inplace=True)
-    elif data.dtypes[data.dtypes == 'float64'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'float64'].to_frame().reset_index(names="columns")["columns"]:
+    elif data.dtypes[data.dtypes == np.dtype("float")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("float")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0.0}, inplace=True)
-    elif data.dtypes[data.dtypes == 'object'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'object'].to_frame().reset_index(names="columns")["columns"]:
+    elif data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:"NA"}, inplace=True)
-    
+            
     for col in cols_to_hash.split(","):
         data[col] = data[col].astype(str).apply(hash)
-        
+            
+    print(data)
     # Load data to postgres (new DB)
-    data.to_sql(name="users", con=engine, if_exists="append", chunksize=3000, index=False)
+    data.to_sql(name="users", con=engine, if_exists="append", chunksize=3000, index=False, dtype={"identification_number":VARCHAR, "email":VARCHAR})
     return Response(status_code=status.HTTP_200_OK)
 
 # Get all users.

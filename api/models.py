@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
-    identification_number = Column(String, nullable=False)
+    identification_number = Column(Integer, nullable=False)
     slug = Column(String, nullable=False)
     video = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
