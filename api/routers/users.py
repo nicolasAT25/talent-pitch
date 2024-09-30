@@ -3,7 +3,6 @@ from .. import models, schemas, utils
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
-from sqlalchemy import VARCHAR
 import os
 import numpy as np
 import pandas as pd
@@ -23,11 +22,11 @@ def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[byte
     data["identification_number"] = data["identification_number"].astype(str)
     
     # Replce null values.
-    if data.dtypes[data.dtypes == np.dtype("int")].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == np.dtype("int")].to_frame().reset_index(names="columns")["columns"]:
+    if data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0}, inplace=True)
-    elif data.dtypes[data.dtypes == np.dtype("float")].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == np.dtype("float")].to_frame().reset_index(names="columns")["columns"]:
+    elif data.dtypes[data.dtypes == np.dtype("float64")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("float64")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0.0}, inplace=True)
     elif data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns").__len__() > 0:
         for i in data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns")["columns"]:
@@ -38,7 +37,7 @@ def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[byte
             
     print(data)
     # Load data to postgres (new DB)
-    data.to_sql(name="users", con=engine, if_exists="append", chunksize=3000, index=False, dtype={"identification_number":VARCHAR, "email":VARCHAR})
+    data.to_sql(name="users", con=engine, if_exists="append", chunksize=3000, index=False)
     return Response(status_code=status.HTTP_200_OK)
 
 # Get all users.

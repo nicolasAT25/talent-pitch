@@ -1,35 +1,34 @@
-from fastapi import Response, status, HTTPException, Depends, APIRouter
+from fastapi import Response, status, HTTPException, Depends, APIRouter, UploadFile, File
 from .. import models, schemas, utils
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
 import os
+import numpy as np
 import pandas as pd
+from typing import Annotated
 
 router = APIRouter(
     prefix = "/resumes",  # Avoid to indicate the path operation root
     tags = ["Resumes"]    # Create section in Swagger documentation
     )
 
-# Define local paths.
-parent_path = r"/Users/nicolasarangurenturmeque/Documents/TalentPitchAPI/api/data/"
-
 # Load batch data (max 3000 rows).
-@router.post("/{file_name}")
-def load_resumes(file_name:str):
-    separator = utils.separator_finder(os.path.join(parent_path, file_name))
+@router.post("/load_data")
+def load_resumes(parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
+    separator = utils.separator_finder(os.path.join(parent_path, file.filename))
         
-    data = pd.read_csv(filepath_or_buffer=os.path.join(parent_path, file_name), sep=separator, encoding="utf-8")
+    data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
     
     # Replce null values.
-    if data.dtypes[data.dtypes == 'int64'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'int64'].to_frame().reset_index(names="columns")["columns"]:
+    if data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0}, inplace=True)
-    elif data.dtypes[data.dtypes == 'float64'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'float64'].to_frame().reset_index(names="columns")["columns"]:
+    elif data.dtypes[data.dtypes == np.dtype("float64")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("float64")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:0.0}, inplace=True)
-    elif data.dtypes[data.dtypes == 'object'].to_frame().reset_index(names="columns").__len__() > 0:
-        for i in data.dtypes[data.dtypes == 'object'].to_frame().reset_index(names="columns")["columns"]:
+    elif data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns").__len__() > 0:
+        for i in data.dtypes[data.dtypes == np.dtype("object")].to_frame().reset_index(names="columns")["columns"]:
             data.fillna({i:"NA"}, inplace=True)
         
 
