@@ -9,8 +9,8 @@ import pandas as pd
 from typing import Annotated
 
 router = APIRouter(
-    prefix = "/resumes",  # Avoid to indicate the path operation root
-    tags = ["Resumes"]    # Create section in Swagger documentation
+    prefix = "/resumes",
+    tags = ["Resumes"]
     )
 
 # Load batch data (max 3000 rows).

@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
-    identification_number = Column(BigInteger, nullable=False)
+    identification_number = Column(String, nullable=False)
     slug = Column(String, nullable=False)
     video = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
@@ -20,7 +20,7 @@ class User(Base):
     
     
 class Profile(Base):
-    __tablename__ = "profiles"     # Name we want to give the table in postgres.
+    __tablename__ = "profiles"
     id = Column(Integer, primary_key=True, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     onboarding_goal = Column(String, nullable=False)
@@ -30,7 +30,7 @@ class Profile(Base):
     
     
 class Challenge(Base):
-    __tablename__ = "challenges"     # Name we want to give the table in postgres.
+    __tablename__ = "challenges"
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
     description = Column(String, nullable=False)
@@ -40,7 +40,7 @@ class Challenge(Base):
     
     
 class Resume(Base):
-    __tablename__ = "resumes"     # Name we want to give the table in postgres.
+    __tablename__ = "resumes"
     id = Column(Integer, primary_key=True, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)

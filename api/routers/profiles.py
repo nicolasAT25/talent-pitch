@@ -9,14 +9,14 @@ import pandas as pd
 from typing import Annotated
 
 router = APIRouter(
-    prefix = "/profiles",  # Avoid to indicate the path operation root
-    tags = ["Profiles"]    # Create section in Swagger documentation
+    prefix = "/profiles",
+    tags = ["Profiles"]
     )
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data")
 def load_profiles(parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
-    separator = utils.separator_finder(os.path.join(parent_path, file))
+    separator = utils.separator_finder(os.path.join(parent_path, file.filename))
         
     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
     

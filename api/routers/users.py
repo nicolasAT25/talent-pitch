@@ -4,9 +4,11 @@ from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
 import os
+import io
 import numpy as np
 import pandas as pd
 from typing import Annotated
+import tempfile
 
 router = APIRouter(
     prefix = "/users",
@@ -15,11 +17,10 @@ router = APIRouter(
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data")
-def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):  # parent_path = /Users/nicolas/Documents/TalentPitchAPI/data/
+def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
     
     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
-    data["identification_number"] = data["identification_number"].astype(str)
     
     # Replce null values.
     if data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns").__len__() > 0:
@@ -35,7 +36,6 @@ def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[byte
     for col in cols_to_hash.split(","):
         data[col] = data[col].astype(str).apply(hash)
             
-    print(data)
     # Load data to postgres (new DB)
     data.to_sql(name="users", con=engine, if_exists="append", chunksize=3000, index=False)
     return Response(status_code=status.HTTP_200_OK)
