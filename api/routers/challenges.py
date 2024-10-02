@@ -15,10 +15,13 @@ router = APIRouter(
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data}")
-def load_challenges(parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
-    separator = utils.separator_finder(os.path.join(parent_path, file.filename))
+# def load_challenges(parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
+#     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
         
-    data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
+#     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
+def load_challenges(file:UploadFile=Annotated[bytes, File(...)]):
+        
+    data = pd.read_csv(file.file, sep=";", encoding="utf-8")
     data["created_at"] = pd.to_datetime(data["created_at"], format="%d/%m/%y")
     
     # Replce null values.

@@ -17,10 +17,13 @@ router = APIRouter(
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data")
-def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
-    separator = utils.separator_finder(os.path.join(parent_path, file.filename))
+# def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
+#     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
     
-    data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
+#     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
+def load_users(cols_to_hash:str, file:UploadFile=Annotated[bytes, File(...)]):
+    
+    data = pd.read_csv(file.file, sep=",", encoding="utf-8")
     
     # Replce null values.
     if data.dtypes[data.dtypes == np.dtype("int64")].to_frame().reset_index(names="columns").__len__() > 0:
