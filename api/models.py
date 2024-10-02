@@ -1,9 +1,8 @@
 # from database import Base
-from sqlalchemy import Column, Integer, String, BigInteger
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.types import TIMESTAMP
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy.sql.expression import text
-from sqlalchemy.ext.declarative import declarative_base
 from .database import Base
 
 class User(Base):
@@ -22,7 +21,8 @@ class User(Base):
 class Profile(Base):
     __tablename__ = "profiles"
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    # user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     onboarding_goal = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), nullable=True)
@@ -42,7 +42,8 @@ class Challenge(Base):
 class Resume(Base):
     __tablename__ = "resumes"
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    # user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
     type = Column(String, nullable=False)
     video = Column(String, nullable=False)

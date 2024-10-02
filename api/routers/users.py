@@ -3,12 +3,9 @@ from .. import models, schemas, utils
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
-import os
-import io
 import numpy as np
 import pandas as pd
-from typing import Annotated
-import tempfile
+from typing import Annotated, List
 
 router = APIRouter(
     prefix = "/users",
@@ -17,10 +14,6 @@ router = APIRouter(
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data")
-# def load_users(cols_to_hash:str, parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
-#     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
-    
-#     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
 def load_users(cols_to_hash:str, file:UploadFile=Annotated[bytes, File(...)]):
     
     data = pd.read_csv(file.file, sep=",", encoding="utf-8")
@@ -50,7 +43,7 @@ def get_users(db: Session=Depends(get_db)):
     return users
 
 # Get one user by id.
-@router.get("/{id}")
+@router.get("/{id}", response_model=schemas.User)
 def get_user(id:int, db: Session=Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     
@@ -60,7 +53,7 @@ def get_user(id:int, db: Session=Depends(get_db)):
     return user
 
 # Create one user.
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session=Depends(get_db)):
     hashed_password = utils.hash(user.identification_number)
     user.identification_number = hashed_password

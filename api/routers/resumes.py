@@ -1,12 +1,11 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter, UploadFile, File
-from .. import models, schemas, utils
+from .. import models, schemas
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
-import os
 import numpy as np
 import pandas as pd
-from typing import Annotated
+from typing import Annotated, List
 
 router = APIRouter(
     prefix = "/resumes",
@@ -35,13 +34,13 @@ def load_resumes(file:UploadFile=Annotated[bytes, File(...)]):
     return Response(status_code=status.HTTP_200_OK)
 
 # Get all resumes.
-@router.get("/")
+@router.get("/", response_model=List[schemas.Resume])
 def get_resumes(db: Session=Depends(get_db)):
     resumes = db.query(models.Resume).all()
     return resumes
 
 # Get one user by id.
-@router.get("/{id}")
+@router.get("/{id}", response_model=schemas.Resume)
 def get_resume(id:int, db: Session=Depends(get_db)):
     resume = db.query(models.Resume).filter(models.Resume.id == id).first()
     
@@ -51,7 +50,7 @@ def get_resume(id:int, db: Session=Depends(get_db)):
                
     return resume
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Resume)
 def create_resume(resume: schemas.ResumeCreate, db: Session=Depends(get_db)):
     new_resume = models.Resume(**resume.model_dump())   
     db.add(new_resume)

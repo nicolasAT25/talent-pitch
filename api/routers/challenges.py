@@ -1,12 +1,11 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter, UploadFile, File
-from .. import models, schemas, utils
+from .. import models, schemas
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
-import os
 import numpy as np
 import pandas as pd
-from typing import Annotated
+from typing import Annotated, List
 
 router = APIRouter(
     prefix = "/challenges",
@@ -15,10 +14,6 @@ router = APIRouter(
 
 # Load batch data (max 3000 rows).
 @router.post("/load_data}")
-# def load_challenges(parent_path:str, file:UploadFile=Annotated[bytes, File(...)]):
-#     separator = utils.separator_finder(os.path.join(parent_path, file.filename))
-        
-#     data = pd.read_csv(file.file, sep=separator, encoding="utf-8")
 def load_challenges(file:UploadFile=Annotated[bytes, File(...)]):
         
     data = pd.read_csv(file.file, sep=";", encoding="utf-8")
@@ -41,13 +36,13 @@ def load_challenges(file:UploadFile=Annotated[bytes, File(...)]):
     return Response(status_code=status.HTTP_200_OK)
 
 # Get all challenges.
-@router.get("/")
+@router.get("/", response_model=List[schemas.Challenge])
 def get_challenges(db: Session=Depends(get_db)):
     challenge = db.query(models.Challenge).all()
     return challenge
 
 # Get one user by id.
-@router.get("/{id}")
+@router.get("/{id}", response_model=schemas.Challenge)
 def get_challenge(id:int, db: Session=Depends(get_db)):
     challenges = db.query(models.Challenge).filter(models.Challenge.id == id).first()
     
@@ -56,7 +51,7 @@ def get_challenge(id:int, db: Session=Depends(get_db)):
                             detail=f"Challenge with ID {id} does not exist")
     return challenges
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Challenge)
 def create_resume(challenge: schemas.ChallegeCreate, db: Session=Depends(get_db)):
     new_challenge = models.Challenge(**challenge.model_dump())   
     db.add(new_challenge)

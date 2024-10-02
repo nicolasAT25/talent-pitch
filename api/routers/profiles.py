@@ -1,12 +1,11 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter, UploadFile, File
-from .. import models, schemas, utils
+from .. import models, schemas
 from .. database import get_db, engine
 
 from sqlalchemy.orm import Session
-import os
 import numpy as np
 import pandas as pd
-from typing import Annotated
+from typing import Annotated, List
 
 router = APIRouter(
     prefix = "/profiles",
@@ -34,13 +33,13 @@ def load_profiles(file:UploadFile=Annotated[bytes, File(...)]):
     return Response(status_code=status.HTTP_200_OK)
 
 # Get all profiles.
-@router.get("/")
+@router.get("/", response_model=List[schemas.Profile])
 def get_profiles(db: Session=Depends(get_db)):
     profiles = db.query(models.Profile).all()
     return profiles
 
 # Get one profile by id.
-@router.get("/{id}")
+@router.get("/{id}", response_model=schemas.Profile)
 def get_profile(id:int, db: Session=Depends(get_db)):
     profile = db.query(models.Profile).filter(models.Profile.id == id).first()
     
@@ -50,7 +49,7 @@ def get_profile(id:int, db: Session=Depends(get_db)):
     return profile
 
 # Create one profile
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Profile)
 def create_profile(profile:schemas.ProfileCreate, db: Session=Depends(get_db)):
     new_profile = models.Profile(**profile.model_dump())
     db.add(new_profile)
